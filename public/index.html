@@ -199,7 +199,7 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(transp
   </main>
 </section>
 
-<!-- ABOUT, TERMS, PRIVACY (Tetap Sama) -->
+<!-- ABOUT, TERMS, PRIVACY -->
 <section class="page" id="page-about">
   <main class="doc">
     <a href="#/" class="back">← Kembali ke halaman utama</a>
@@ -229,7 +229,7 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(transp
 
 <script>
 /* ============================================================
-   LOGIKA UTAMA: LOCAL STORAGE & BROADCAST (ANTI-VERCEL ERROR)
+   LOGIKA UTAMA: LOCAL STORAGE (ANTI-VERCEL ERROR)
 ============================================================ */
 
 const $ = s => document.querySelector(s);
@@ -380,7 +380,7 @@ $('#searchForm').addEventListener('submit', (e) => {
 
 $('#logoutBtn').addEventListener('click', () => { clearSession(); location.hash = '#/'; });
 
-/* ---------- Chat (BroadcastChannel) ---------- */
+/* ---------- Chat (LocalStorage + Broadcast) ---------- */
 let currentTo = null;
 let bc = ('BroadcastChannel' in window) ? new BroadcastChannel('ccr_chat') : null;
 let chatHandler = null;
@@ -389,16 +389,22 @@ function initChat(to) {
   const me = getSession(); if (!me) return;
   if (!to) { location.hash = '#/dashboard'; return; }
   currentTo = to;
-  $('#chatWho').textContent = to;
+  
+  // Tampilkan nama target di header
+  const users = getUsers();
+  const targetUser = Object.values(users).find(x => x.id === to);
+  $('#chatWho').textContent = targetUser ? targetUser.username : to;
+  
   $('#chatBody').innerHTML = '';
 
+  // Kunci unik percakapan (diurutkan biar ID A-B sama dengan B-A)
   const key = 'ccr_msgs_' + [me.id, to].sort().join('_');
   
-  // Load history
+  // TARIK SEMUA RIWAYAT PESAN DARI MEMORI
   const history = JSON.parse(localStorage.getItem(key) || '[]');
   history.forEach(m => renderBubble(m, me.id));
 
-  // Listen BC
+  // Sinkronisasi realtime antar tab
   if (chatHandler && bc) bc.removeEventListener('message', chatHandler);
   if (bc) {
     chatHandler = (ev) => {
@@ -432,7 +438,7 @@ function escapeHtml(s) {
 
 $('#chatForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  e.stopPropagation(); // Biar browser gak nge-refresh halaman
+  e.stopPropagation(); 
   
   const me = getSession(); 
   if (!me || !currentTo) return;
@@ -441,7 +447,6 @@ $('#chatForm').addEventListener('submit', (e) => {
   const text = input.value.trim(); 
   if (!text) return;
   
-  // Kunci unik percakapan
   const key = 'ccr_msgs_' + [me.id, currentTo].sort().join('_');
   const msg = { 
     key: key, 
@@ -452,16 +457,10 @@ $('#chatForm').addEventListener('submit', (e) => {
     at: Date.now() 
   };
 
-  // 1. Simpan ke memori browser
   saveMsg(key, msg);
-  
-  // 2. Tampilkan gelembung pesan di layar
   renderBubble(msg, me.id);
-  
-  // 3. Kirim sinyal ke tab lain (kalau ada)
   if (bc) bc.postMessage(msg);
 
-  // 4. Kosongkan kolom ketik
   input.value = '';
   input.focus();
 });
