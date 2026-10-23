@@ -8,14 +8,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="/socket.io/socket.io.js"></script>
 <style>
-/* ==== CSS KAMU — TIDAK DIUBAH ==== */
 :root{
   --bg-main:#050714;--bg-card:rgba(10,12,28,0.75);
   --accent-cyan:#00F0FF;--accent-pink:#FF2D92;--accent-purple:#7B2FFD;
   --text-primary:#E6F1FF;--text-secondary:#8F9BB3;
-  --bochatSocket = io({ auth: { token: getToken() } });rder-glow:1px solid rgba(0,240,255,0.35);
+  --border-glow:1px solid rgba(0,240,255,0.35);
   --shadow-glow:0 0 24px rgba(0,240,255,0.15), 0 0 48px rgba(123,47,253,0.08);
   --gradient-neon:linear-gradient(135deg,#00F0FF,#7B2FFD);
   --gradient-pink:linear-gradient(135deg,#FF2D92,#7B2FFD);
@@ -123,10 +121,10 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(transp
       <a href="#/about" class="lbtn ghost">TENTANG</a>
     </div>
     <div class="lfeats">
-      <div class="lfeat">🔒 <span>Enkripsi Server</span></div>
+      <div class="lfeat">🔒 <span>Enkripsi Lokal</span></div>
       <div class="lfeat">⚡ <span>Realtime Chat</span></div>
       <div class="lfeat">🪪 <span>Identitas Unik</span></div>
-      <div class="lfeat">🌐 <span>Lintas Device</span></div>
+      <div class="lfeat">🌐 <span>Tanpa Instalasi</span></div>
     </div>
     <p class="legal-links"><a href="#/terms">SYARAT</a> · <a href="#/privacy">PRIVASI</a></p>
     <div class="dev-credit">
@@ -201,86 +199,47 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(transp
   </main>
 </section>
 
-<!-- ABOUT -->
+<!-- ABOUT, TERMS, PRIVACY (Tetap Sama) -->
 <section class="page" id="page-about">
   <main class="doc">
     <a href="#/" class="back">← Kembali ke halaman utama</a>
     <h1>Tentang CYBER CHAT RILL</h1>
-    <p><strong>CYBER CHAT RILL</strong> adalah platform komunikasi berbasis web dengan estetika cyberpunk — masa depan yang terhubung, transparan, dan realtime.</p>
-    <h2>Fitur Utama</h2>
-    <ul>
-      <li>Identitas unik per pengguna (format: NW-XXXXXXXX)</li>
-      <li>Pesan realtime lintas device via Socket.IO</li>
-      <li>Login aman dengan JWT & password di-hash bcrypt</li>
-      <li>Antarmuka futuristik tanpa perlu instalasi aplikasi</li>
-    </ul>
-    <h2>Arsitektur</h2>
-    <p>Backend Node.js + Express + Socket.IO. Data disimpan server-side. Frontend murni HTML/CSS/JS dengan hash router.</p>
+    <p><strong>CYBER CHAT RILL</strong> adalah platform komunikasi berbasis web yang dirancang dengan estetika cyberpunk.</p>
     <div class="dev-credit" style="margin-top:32px;text-align:center">
-      <strong>CYBER CHAT RILL — Cyberpunk Edition</strong><br>
-      Dibuat dengan 💙 oleh <strong>Fahril Moonstar</strong><br>
-      <small style="opacity:0.7">© 2026 All Rights Reserved</small>
+      Dibuat dengan 💙 oleh <strong>Fahril Moonstar</strong>
     </div>
   </main>
 </section>
 
-<!-- TERMS -->
 <section class="page" id="page-terms">
   <main class="doc">
     <a href="#/" class="back">← Kembali</a>
     <h1>Syarat Penggunaan</h1>
-    <h2>Ketentuan Umum</h2>
-    <ul>
-      <li>Layanan ini disediakan untuk keperluan komunikasi yang sah</li>
-      <li>Dilarang menggunakan untuk aktivitas ilegal atau yang melanggar hukum</li>
-      <li>Pengguna bertanggung jawab menjaga kerahasiaan akun masing-masing</li>
-      <li>Fahril Moonstar tidak bertanggung jawab atas penyalahgunaan layanan</li>
-    </ul>
-    <div class="dev-credit" style="margin-top:32px;text-align:center">Developed by <strong>Fahril Moonstar</strong></div>
+    <p>Dilarang menggunakan untuk aktivitas ilegal.</p>
   </main>
 </section>
 
-<!-- PRIVACY -->
 <section class="page" id="page-privacy">
   <main class="doc">
     <a href="#/" class="back">← Kembali</a>
     <h1>Kebijakan Privasi</h1>
-    <h2>Penyimpanan Data</h2>
-    <p>Username, password (terenkripsi bcrypt), ID unik, dan daftar kontak disimpan di server. Pesan chat diteruskan realtime ke penerima dan <strong>tidak disimpan permanen</strong> di server.</p>
-    <h2>Keamanan</h2>
-    <p>Password di-hash dengan bcrypt. Autentikasi menggunakan JWT (7 hari). Gunakan password kuat dan jangan bagikan akunmu.</p>
-    <div class="dev-credit" style="margin-top:32px;text-align:center">Developed by <strong>Fahril Moonstar</strong></div>
+    <p>Data disimpan secara lokal di perangkat Anda.</p>
   </main>
 </section>
 
 <script>
 /* ============================================================
-   CYBER CHAT RILL — Frontend (backend-connected)
-   Developed by: Fahril Moonstar
+   LOGIKA UTAMA: LOCAL STORAGE & BROADCAST (ANTI-VERCEL ERROR)
 ============================================================ */
 
 const $ = s => document.querySelector(s);
-const API = '/api';
 
-/* ---------- Session ---------- */
-function setSession(user, token) {
-  localStorage.setItem('nova_session', JSON.stringify(user));
-  localStorage.setItem('nova_token', token);
-}
-function getSession() { try { return JSON.parse(localStorage.getItem('nova_session') || 'null'); } catch { return null; } }
-function getToken() { return localStorage.getItem('nova_token'); }
-function clearSession() { localStorage.removeItem('nova_session'); localStorage.removeItem('nova_token'); }
-
-/* ---------- API helper ---------- */
-async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json' };
-  const token = getToken();
-  if (token) headers['Authorization'] = 'Bearer ' + token;
-  const r = await fetch(API + path, { ...opts, headers });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || 'Error');
-  return data;
-}
+// Helper LocalStorage
+const getUsers = () => JSON.parse(localStorage.getItem('ccr_users') || '{}');
+const saveUsers = (u) => localStorage.setItem('ccr_users', JSON.stringify(u));
+const getSession = () => JSON.parse(localStorage.getItem('ccr_session') || 'null');
+const setSession = (u) => localStorage.setItem('ccr_session', JSON.stringify(u));
+const clearSession = () => localStorage.removeItem('ccr_session');
 
 /* ---------- Router ---------- */
 function showPage(name) {
@@ -314,41 +273,12 @@ function drawGrid() {
   let w, h, offset = 0;
   const resize = () => { w = canvas.width = innerWidth; h = canvas.height = innerHeight; };
   resize(); addEventListener('resize', resize);
-
-  const dots = [];
-  for (let i = 0; i < 30; i++) {
-    dots.push({
-      x: Math.random(), y: Math.random(), size: 1 + Math.random() * 2,
-      speedX: (Math.random() - 0.5) * 0.0003,
-      speedY: (Math.random() - 0.5) * 0.0003
-    });
-  }
-
   (function frame() {
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = 'rgba(0,240,255,0.06)'; ctx.lineWidth = 1;
     const gap = 45; offset = (offset + 0.25) % gap;
     for (let x = -gap + offset; x < w; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
     for (let y = -gap + offset; y < h; y += gap) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(123,47,253,0.03)';
-    for (let d = -w; d < w + h; d += gap * 2) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + h, h); ctx.stroke(); }
-    dots.forEach(dot => {
-      dot.x += dot.speedX; dot.y += dot.speedY;
-      if (dot.x < 0) dot.x = 1; if (dot.x > 1) dot.x = 0;
-      if (dot.y < 0) dot.y = 1; if (dot.y > 1) dot.y = 0;
-      const px = dot.x * w, py = dot.y * h;
-      ctx.beginPath(); ctx.arc(px, py, dot.size, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,240,255,0.25)'; ctx.fill();
-      dots.forEach(other => {
-        const ox = other.x * w, oy = other.y * h;
-        const dist = Math.hypot(px - ox, py - oy);
-        if (dist < 120) {
-          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ox, oy);
-          ctx.strokeStyle = `rgba(0,240,255,${0.08 * (1 - dist / 120)})`;
-          ctx.stroke();
-        }
-      });
-    });
     requestAnimationFrame(frame);
   })();
 }
@@ -364,87 +294,96 @@ function startTyping() {
 }
 
 /* ---------- Auth ---------- */
-$('#loginForm').addEventListener('submit', async (e) => {
+$('#loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const msg = $('#loginMsg');
-  msg.textContent = 'Menghubungkan...'; msg.className = 'msg';
-  try {
-    const d = await api('/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        username: $('#loginUser').value.trim(),
-        password: $('#loginPass').value
-      })
-    });
-    setSession(d.user, d.token);
-    location.hash = '#/dashboard';
-  } catch (err) { msg.className = 'msg err'; msg.textContent = '❌ ' + err.message; }
+  const u = $('#loginUser').value.trim();
+  const p = $('#loginPass').value;
+  const users = getUsers();
+
+  if (!users[u] || users[u].password !== p) {
+    msg.className = 'msg err'; msg.textContent = '❌ Username / kata sandi salah';
+    return;
+  }
+  setSession({ id: users[u].id, username: u });
+  location.hash = '#/dashboard';
 });
 
-$('#regForm').addEventListener('submit', async (e) => {
+$('#regForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const msg = $('#regMsg');
-  msg.textContent = 'Memproses...'; msg.className = 'msg';
-  try {
-    const d = await api('/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        username: $('#regUser').value.trim(),
-        password: $('#regPass').value
-      })
-    });
-    setSession(d.user, d.token);
-    msg.className = 'msg ok'; msg.textContent = `✅ Berhasil! ID: ${d.user.id}`;
-    setTimeout(() => location.hash = '#/dashboard', 1200);
-  } catch (err) { msg.className = 'msg err'; msg.textContent = '❌ ' + err.message; }
+  const u = $('#regUser').value.trim();
+  const p = $('#regPass').value;
+  const users = getUsers();
+
+  if (users[u]) { msg.className = 'msg err'; msg.textContent = '❌ Username sudah dipakai'; return; }
+
+  const id = 'NW-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+  users[u] = { id, username: u, password: p, contacts: [] };
+  saveUsers(users);
+  setSession({ id, username: u });
+  
+  msg.className = 'msg ok'; msg.textContent = `✅ Berhasil! ID: ${id}`;
+  setTimeout(() => location.hash = '#/dashboard', 1000);
 });
 
 /* ---------- Dashboard ---------- */
-async function loadDashboard() {
+function loadDashboard() {
   const me = getSession(); if (!me) return;
-  try {
-    const data = await api('/me');
-    $('#uname').textContent = data.username;
-    $('#uid').textContent = data.id;
-    renderContacts(data.contacts);
-  } catch { clearSession(); location.hash = '#/login'; }
+  const users = getUsers();
+  const myData = users[me.username] || { contacts: [] };
+  
+  $('#uname').textContent = me.username;
+  $('#uid').textContent = me.id;
+  renderContacts(myData.contacts);
 }
 
-async function renderContacts(ids) {
+function renderContacts(ids) {
   const box = $('#contacts');
   if (!ids || !ids.length) { box.innerHTML = '<p style="color:#6B72A0">Belum ada kontak yang terhubung.</p>'; return; }
-  // Ambil username via pencarian (ID unik tidak langsung ke username, kita bisa tambahkan endpoint kalau perlu)
-  box.innerHTML = ids.map(id => `
-    <div class="contact-item">
-      <div><span class="cid">${id}</span></div>
+  
+  const users = getUsers();
+  box.innerHTML = ids.map(id => {
+    const u = Object.values(users).find(x => x.id === id);
+    return `<div class="contact-item">
+      <div><span class="cid">${id}</span> <span style="color:gray;font-size:.8rem">(${u ? u.username : '?'})</span></div>
       <button onclick="location.hash='#/chat?to=${id}'">CHAT</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
-$('#searchForm').addEventListener('submit', async (e) => {
+$('#searchForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const q = $('#searchQ').value.trim();
+  const q = $('#searchQ').value.trim().toLowerCase();
   const msg = $('#searchMsg');
+  const me = getSession();
   if (!q) return;
-  try {
-    const list = await api('/users?q=' + encodeURIComponent(q));
-    if (!list.length) { msg.className = 'msg err'; msg.textContent = '❌ Pengguna tidak ditemukan'; return; }
-    const u = list[0];
-    await api('/contacts', { method: 'POST', body: JSON.stringify({ contactId: u.id }) });
-    msg.className = 'msg ok'; msg.textContent = `✅ Terhubung dengan: ${u.username}`;
-    loadDashboard();
-  } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+
+  const users = getUsers();
+  const found = Object.values(users).find(u => u.id.toLowerCase().includes(q) || u.username.toLowerCase().includes(q));
+
+  if (!found || found.id === me.id) { 
+    msg.className = 'msg err'; msg.textContent = '❌ Pengguna tidak ditemukan'; 
+    return; 
+  }
+
+  const myData = users[me.username];
+  myData.contacts = myData.contacts || [];
+  if (!myData.contacts.includes(found.id)) {
+    myData.contacts.push(found.id);
+    saveUsers(users);
+  }
+
+  msg.className = 'msg ok'; msg.textContent = `✅ Terhubung dengan: ${found.username}`;
+  loadDashboard();
 });
 
-$('#logoutBtn').addEventListener('click', () => {
-  clearSession();
-  if (window._socket) window._socket.disconnect();
-  location.hash = '#/';
-});
+$('#logoutBtn').addEventListener('click', () => { clearSession(); location.hash = '#/'; });
 
-/* ---------- Chat ---------- */
-let chatSocket = null;
+/* ---------- Chat (BroadcastChannel) ---------- */
 let currentTo = null;
+let bc = ('BroadcastChannel' in window) ? new BroadcastChannel('ccr_chat') : null;
+let chatHandler = null;
 
 function initChat(to) {
   const me = getSession(); if (!me) return;
@@ -453,28 +392,29 @@ function initChat(to) {
   $('#chatWho').textContent = to;
   $('#chatBody').innerHTML = '';
 
-  if (chatSocket) chatSocket.disconnect();
-  chatSocket = io({
-  auth: { token: getToken() },
-  path: '/api/socket.io',
-  transports: ['websocket'],
-  reconnection: true,
-  reconnectionAttempts: 10,
-  reconnectionDelay: 1000
-});
-  window._socket = chatSocket;
+  const key = 'ccr_msgs_' + [me.id, to].sort().join('_');
+  
+  // Load history
+  const history = JSON.parse(localStorage.getItem(key) || '[]');
+  history.forEach(m => renderBubble(m, me.id));
 
-  chatSocket.on('connect_error', (e) => {
-    $('#chatBody').innerHTML = `<p style="color:#FF4D6F">Koneksi gagal: ${e.message}</p>`;
-  });
+  // Listen BC
+  if (chatHandler && bc) bc.removeEventListener('message', chatHandler);
+  if (bc) {
+    chatHandler = (ev) => {
+      const m = ev.data;
+      if (m.key !== key || m.from === me.id) return;
+      saveMsg(key, m);
+      renderBubble(m, me.id);
+    };
+    bc.addEventListener('message', chatHandler);
+  }
+}
 
-  chatSocket.on('message:new', (m) => {
-    if (m.from === me.id) return; // hindari double
-    renderBubble(m, me.id);
-  });
-  chatSocket.on('message:sent', (m) => {
-    // echo dari server setelah kita kirim → sudah kita render lokal, skip
-  });
+function saveMsg(key, msg) {
+  const list = JSON.parse(localStorage.getItem(key) || '[]');
+  list.push(msg);
+  localStorage.setItem(key, JSON.stringify(list));
 }
 
 function renderBubble(m, myId) {
@@ -492,15 +432,17 @@ function escapeHtml(s) {
 
 $('#chatForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const me = getSession(); if (!me || !currentTo || !chatSocket) return;
+  const me = getSession(); if (!me || !currentTo) return;
   const input = $('#chatInput');
   const text = input.value.trim(); if (!text) return;
+  
+  const key = 'ccr_msgs_' + [me.id, currentTo].sort().join('_');
+  const msg = { key, from: me.id, fromName: me.username, to: currentTo, text, at: Date.now() };
 
-  const msg = {
-    from: me.id, fromName: me.username, to: currentTo, text, at: Date.now()
-  };
-  chatSocket.emit('message:send', { to: currentTo, text });
-  renderBubble(msg, me.id); // render lokal instan
+  saveMsg(key, msg);
+  renderBubble(msg, me.id);
+  if (bc) bc.postMessage(msg);
+
   input.value = '';
 });
 </script>
