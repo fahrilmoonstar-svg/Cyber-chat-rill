@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050714">
+<title>CYBER CHAT RILL | Cyberpunk Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
+<style>
+/* ==== CSS KAMU — TIDAK DIUBAH ==== */
+:root{
+  --bg-main:#050714;--bg-card:rgba(10,12,28,0.75);
+  --accent-cyan:#00F0FF;--accent-pink:#FF2D92;--accent-purple:#7B2FFD;
+  --text-primary:#E6F1FF;--text-secondary:#8F9BB3;
+  --border-glow:1px solid rgba(0,240,255,0.35);
+  --shadow-glow:0 0 24px rgba(0,240,255,0.15), 0 0 48px rgba(123,47,253,0.08);
+  --gradient-neon:linear-gradient(135deg,#00F0FF,#7B2FFD);
+  --gradient-pink:linear-gradient(135deg,#FF2D92,#7B2FFD);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk','Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg-main);color:var(--text-primary);overflow-x:hidden;min-height:100vh;background-image:radial-gradient(circle at top,rgba(123,47,253,0.12) 0%,transparent 50%),radial-gradient(circle at bottom-left,rgba(0,240,255,0.08) 0%,transparent 50%);background-attachment:fixed}
+a{color:inherit;text-decoration:none}
+button,input{font-family:inherit}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(transparent 50%,rgba(0,0,0,0.04) 50%);background-size:100% 4px;pointer-events:none;z-index:9999;opacity:0.25}
+#grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.page{position:relative;z-index:1;display:none;min-height:100vh}
+.page.active{display:block}
+.lhero{display:grid;place-items:center;min-height:100vh;padding:32px 20px}
+.linner{max-width:760px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:24px;animation:fadeUp .8s both}
+.llogo{width:110px;height:110px;display:grid;place-items:center;font-size:2.2rem;font-weight:700;background:var(--gradient-neon);color:var(--bg-main);clip-path:polygon(8% 0,100% 0,100% 92%,92% 100%,0 100%,0 8%);box-shadow:0 0 40px var(--accent-cyan),0 0 80px rgba(123,47,253,0.3);position:relative}
+.llogo::before{content:"";position:absolute;inset:-3px;background:var(--gradient-neon);filter:blur(14px);opacity:0.4;z-index:-1}
+.ltitle{font-size:clamp(1.8rem,5vw,3.2rem);font-weight:700;line-height:1.15;background:var(--gradient-neon);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px rgba(0,240,255,0.2)}
+.ltitle::after{content:"█";margin-left:6px;color:var(--accent-cyan);animation:blink 1s steps(2,start) infinite}
+.ldesc{font-size:1.05rem;color:var(--text-secondary);line-height:1.7;max-width:560px}
+.lbtns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.lbtn{padding:15px 32px;border-radius:4px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.9rem;border:2px solid transparent;cursor:pointer;transition:all .25s ease;display:inline-block;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.lbtn.primary{background:var(--gradient-neon);color:var(--bg-main);box-shadow:0 0 20px var(--accent-cyan)}
+.lbtn.primary:hover{transform:translateY(-3px);box-shadow:0 0 35px var(--accent-cyan),0 0 60px rgba(123,47,253,0.4)}
+.lbtn.ghost{border-color:rgba(0,240,255,0.4);background:rgba(0,240,255,0.03);color:var(--accent-cyan)}
+.lbtn.ghost:hover{border-color:var(--accent-pink);background:rgba(255,45,146,0.06);color:var(--accent-pink);box-shadow:0 0 20px rgba(255,45,146,0.2)}
+.lfeats{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.lfeat{display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:4px;border:1px solid rgba(0,240,255,0.15);background:rgba(0,240,255,0.03);font-size:.85rem;color:var(--text-secondary);clip-path:polygon(8px 0,100% 0,100% 100%,16px 100%,0 calc(100% - 8px),0 0)}
+.legal-links{margin-top:32px;font-size:.8rem;color:#4F5578;letter-spacing:.05em}
+.legal-links a{margin:0 8px}
+.legal-links a:hover{color:var(--accent-cyan);text-shadow:0 0 8px var(--accent-cyan)}
+.dev-credit{margin-top:40px;padding:16px 24px;border:1px solid rgba(123,47,253,0.2);background:rgba(123,47,253,0.04);font-size:.8rem;color:#6B72A0;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.dev-credit strong{color:var(--accent-pink)}
+.auth-wrap{display:grid;place-items:center;min-height:100vh;padding:24px}
+.auth-card{width:100%;max-width:440px;background:var(--bg-card);border:var(--border-glow);border-radius:4px;padding:36px;clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);box-shadow:var(--shadow-glow);backdrop-filter:blur(16px);animation:fadeUp .5s both;position:relative}
+.auth-card::before{content:"";position:absolute;top:12px;right:12px;width:32px;height:32px;border-top:2px solid var(--accent-cyan);border-right:2px solid var(--accent-cyan);opacity:0.5}
+.auth-card::after{content:"";position:absolute;bottom:12px;left:12px;width:32px;height:32px;border-bottom:2px solid var(--accent-pink);border-left:2px solid var(--accent-pink);opacity:0.5}
+.auth-card h1{font-size:1.6rem;margin-bottom:6px;text-align:center;background:var(--gradient-neon);-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth-card p.sub{text-align:center;color:var(--text-secondary);margin-bottom:28px;font-size:.9rem}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.field label{font-size:.75rem;color:#6B72A0;text-transform:uppercase;letter-spacing:.12em}
+.field input{padding:14px 16px;border-radius:2px;border:1px solid rgba(0,240,255,0.15);background:rgba(0,0,0,0.4);color:var(--text-primary);font-size:.95rem;transition:all .2s}
+.field input:focus{outline:none;border-color:var(--accent-cyan);box-shadow:0 0 0 1px var(--accent-cyan),0 0 16px rgba(0,240,255,0.15)}
+.btn{width:100%;padding:14px;border-radius:2px;border:none;background:var(--gradient-neon);color:var(--bg-main);font-weight:700;cursor:pointer;font-size:.95rem;margin-top:8px;text-transform:uppercase;letter-spacing:.1em;transition:all .25s}
+.btn:hover{filter:brightness(1.1);box-shadow:0 0 24px var(--accent-cyan)}
+.btn.ghost{background:rgba(255,45,146,0.03);border:1px solid rgba(255,45,146,0.4);color:var(--accent-pink);margin-top:14px}
+.btn.ghost:hover{border-color:var(--accent-pink);background:rgba(255,45,146,0.08);box-shadow:0 0 16px rgba(255,45,146,0.15)}
+.msg{font-size:.85rem;margin-top:16px;text-align:center;min-height:1.2em;letter-spacing:.05em}
+.msg.err{color:#FF4D6F;text-shadow:0 0 8px rgba(255,77,111,0.3)}
+.msg.ok{color:#00F0FF;text-shadow:0 0 8px rgba(0,240,255,0.3)}
+.dash{max-width:780px;margin:0 auto;padding:40px 24px}
+.dash h1{font-size:1.8rem;margin-bottom:4px}
+.uid{font-family:'JetBrains Mono','Consolas',monospace;background:var(--gradient-neon);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700;font-size:1.05rem}
+.card{background:var(--bg-card);border:var(--border-glow);border-radius:4px;padding:24px;margin-top:24px;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);box-shadow:var(--shadow-glow)}
+.card h2{font-size:.85rem;margin-bottom:16px;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:.15em;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"//";opacity:0.5}
+.contact-list{display:flex;flex-direction:column;gap:10px}
+.contact-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:2px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,240,255,0.08);transition:all .2s}
+.contact-item:hover{border-color:rgba(0,240,255,0.2);background:rgba(0,240,255,0.03)}
+.cid{font-family:'JetBrains Mono',monospace;color:var(--accent-cyan);font-size:.9rem}
+.contact-item button{padding:8px 18px;border-radius:2px;border:1px solid var(--accent-purple);background:rgba(123,47,253,0.1);color:#C4B5FD;cursor:pointer;transition:all .2s;text-transform:uppercase;font-size:.8rem;letter-spacing:.08em}
+.contact-item button:hover{background:rgba(123,47,253,0.2);box-shadow:0 0 12px rgba(123,47,253,0.3)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row input{flex:1;min-width:180px;padding:12px 16px;border-radius:2px;border:1px solid rgba(0,240,255,0.15);background:rgba(0,0,0,0.4);color:var(--text-primary);transition:all .2s}
+.row input:focus{outline:none;border-color:var(--accent-cyan);box-shadow:0 0 12px rgba(0,240,255,0.1)}
+.chat-wrap{display:grid;grid-template-rows:auto 1fr auto;height:100vh;max-width:760px;margin:0 auto;border-left:1px solid rgba(0,240,255,0.1);border-right:1px solid rgba(0,240,255,0.1);background:rgba(5,7,20,0.6)}
+.chat-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(0,240,255,0.1);background:rgba(10,14,35,0.8)}
+.chat-head h2{font-size:1rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent-cyan)}
+.chat-head .who{font-family:'JetBrains Mono',monospace;color:var(--accent-pink);font-size:.85rem;text-shadow:0 0 6px rgba(255,45,146,0.3)}
+.chat-head a{color:var(--text-secondary);font-size:.85rem;transition:color .2s}
+.chat-head a:hover{color:var(--accent-cyan)}
+.chat-body{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.bubble{max-width:74%;padding:12px 16px;border-radius:4px;font-size:.92rem;line-height:1.5;word-wrap:break-word;position:relative}
+.bubble.me{align-self:flex-end;background:var(--gradient-neon);color:var(--bg-main);border-bottom-right-radius:0;box-shadow:0 0 14px rgba(0,240,255,0.25)}
+.bubble.them{align-self:flex-start;background:rgba(123,47,253,0.15);border:1px solid rgba(123,47,253,0.3);color:var(--text-primary);border-bottom-left-radius:0}
+.bubble .meta{display:block;font-size:.7rem;opacity:.6;margin-top:6px}
+.chat-form{display:flex;gap:10px;padding:16px;border-top:1px solid rgba(0,240,255,0.1);background:rgba(10,14,35,0.8)}
+.chat-form input{flex:1;padding:12px 16px;border-radius:2px;border:1px solid rgba(0,240,255,0.15);background:rgba(0,0,0,0.4);color:var(--text-primary);font-size:.95rem}
+.chat-form input:focus{outline:none;border-color:var(--accent-cyan)}
+.chat-form button{padding:0 24px;border-radius:2px;border:none;background:var(--gradient-neon);color:var(--bg-main);font-weight:700;cursor:pointer;transition:all .2s}
+.chat-form button:hover{box-shadow:0 0 16px var(--accent-cyan)}
+.doc{max-width:760px;margin:0 auto;padding:48px 28px}
+.doc h1{font-size:2.2rem;margin-bottom:24px;background:var(--gradient-neon);-webkit-background-clip:text;background-clip:text;color:transparent}
+.doc h2{font-size:1.1rem;margin:32px 0 12px;color:var(--accent-pink);text-transform:uppercase;letter-spacing:.1em}
+.doc p,.doc li{color:var(--text-secondary);line-height:1.8;margin-bottom:10px}
+.doc ul{padding-left:24px}
+.doc li::marker{color:var(--accent-cyan)}
+.back{display:inline-block;margin-bottom:28px;color:var(--accent-cyan);transition:all .2s}
+.back:hover{color:var(--accent-pink);transform:translateX(-4px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{50%{opacity:0}}
+@media (max-width:600px){.lbtns{flex-direction:column;width:100%}.lbtn{text-align:center;width:100%}.auth-card{padding:28px 20px}.bubble{max-width:85%}}
+</style>
+</head>
+<body>
+<canvas id="grid-bg" aria-hidden="true"></canvas>
+
+<!-- LANDING -->
+<section class="page" id="page-landing">
+  <main class="lhero"><div class="linner">
+    <div class="llogo">CCR</div>
+    <h1 class="ltitle" id="typing-title" aria-label="Selamat Datang di CYBER CHAT RILL"></h1>
+    <p class="ldesc">Platform komunikasi masa depan — aman, cepat, terhubung langsung.<br>Gunakan ID unik, simpan teman, dan mulai terhubung sekarang.</p>
+    <div class="lbtns">
+      <a href="#/login" class="lbtn primary">MASUK</a>
+      <a href="#/about" class="lbtn ghost">TENTANG</a>
+    </div>
+    <div class="lfeats">
+      <div class="lfeat">🔒 <span>Enkripsi Server</span></div>
+      <div class="lfeat">⚡ <span>Realtime Chat</span></div>
+      <div class="lfeat">🪪 <span>Identitas Unik</span></div>
+      <div class="lfeat">🌐 <span>Lintas Device</span></div>
+    </div>
+    <p class="legal-links"><a href="#/terms">SYARAT</a> · <a href="#/privacy">PRIVASI</a></p>
+    <div class="dev-credit">
+      CYBER CHAT RILL — Cyberpunk Edition<br>
+      <strong>© 2026 Fahril Moonstar</strong> · Dibangun dengan semangat & kode terbuka
+    </div>
+  </div></main>
+</section>
+
+<!-- LOGIN -->
+<section class="page" id="page-login">
+  <main class="auth-wrap"><form class="auth-card" id="loginForm">
+    <h1>MASUK</h1>
+    <p class="sub">Selamat datang kembali</p>
+    <div class="field"><label>Username</label><input id="loginUser" required autocomplete="username" placeholder="Masukkan nama pengguna"></div>
+    <div class="field"><label>Kata Sandi</label><input id="loginPass" type="password" required autocomplete="current-password" placeholder="Masukkan kata sandi"></div>
+    <button class="btn" type="submit">MASUK SEKARANG</button>
+    <a href="#/register" class="btn ghost" style="text-align:center">Belum punya akun? Daftar</a>
+    <p class="msg" id="loginMsg"></p>
+  </form></main>
+</section>
+
+<!-- REGISTER -->
+<section class="page" id="page-register">
+  <main class="auth-wrap"><form class="auth-card" id="regForm">
+    <h1>DAFTAR</h1>
+    <p class="sub">Buat identitasmu di jaringan</p>
+    <div class="field"><label>Username</label><input id="regUser" required minlength="3" autocomplete="username" placeholder="Minimal 3 karakter"></div>
+    <div class="field"><label>Kata Sandi</label><input id="regPass" type="password" required minlength="6" autocomplete="new-password" placeholder="Minimal 6 karakter"></div>
+    <button class="btn" type="submit">BUAT AKUN</button>
+    <a href="#/login" class="btn ghost" style="text-align:center">Sudah punya akun? Masuk</a>
+    <p class="msg" id="regMsg"></p>
+  </form></main>
+</section>
+
+<!-- DASHBOARD -->
+<section class="page" id="page-dashboard">
+  <main class="dash">
+    <h1>Halo, <span id="uname">...</span></h1>
+    <p style="color:var(--text-secondary);margin-top:4px">ID Jaringan: <span class="uid" id="uid">...</span></p>
+    <div class="card">
+      <h2>Cari Pengguna</h2>
+      <form class="row" id="searchForm">
+        <input id="searchQ" placeholder="Cari berdasarkan ID atau nama...">
+        <button class="btn" style="width:auto;padding:0 24px;margin:0" type="submit">CARI</button>
+      </form>
+      <p class="msg" id="searchMsg" style="text-align:left;margin-top:12px"></p>
+    </div>
+    <div class="card">
+      <h2>Daftar Terhubung</h2>
+      <div class="contact-list" id="contacts"></div>
+    </div>
+    <div class="card"><button class="btn ghost" id="logoutBtn">KELUAR DARI JARINGAN</button></div>
+    <div class="dev-credit" style="text-align:center;margin-top:20px">
+      <strong>CYBER CHAT RILL</strong> · Developed by Fahril Moonstar
+    </div>
+  </main>
+</section>
+
+<!-- CHAT -->
+<section class="page" id="page-chat">
+  <main class="chat-wrap">
+    <div class="chat-head">
+      <div><h2>Jaringan Chat</h2><span class="who" id="chatWho">-</span></div>
+      <a href="#/dashboard">← Kembali</a>
+    </div>
+    <div class="chat-body" id="chatBody"></div>
+    <form class="chat-form" id="chatForm">
+      <input id="chatInput" placeholder="Ketik pesanmu...">
+      <button type="submit">KIRIM</button>
+    </form>
+  </main>
+</section>
+
+<!-- ABOUT -->
+<section class="page" id="page-about">
+  <main class="doc">
+    <a href="#/" class="back">← Kembali ke halaman utama</a>
+    <h1>Tentang CYBER CHAT RILL</h1>
+    <p><strong>CYBER CHAT RILL</strong> adalah platform komunikasi berbasis web dengan estetika cyberpunk — masa depan yang terhubung, transparan, dan realtime.</p>
+    <h2>Fitur Utama</h2>
+    <ul>
+      <li>Identitas unik per pengguna (format: NW-XXXXXXXX)</li>
+      <li>Pesan realtime lintas device via Socket.IO</li>
+      <li>Login aman dengan JWT & password di-hash bcrypt</li>
+      <li>Antarmuka futuristik tanpa perlu instalasi aplikasi</li>
+    </ul>
+    <h2>Arsitektur</h2>
+    <p>Backend Node.js + Express + Socket.IO. Data disimpan server-side. Frontend murni HTML/CSS/JS dengan hash router.</p>
+    <div class="dev-credit" style="margin-top:32px;text-align:center">
+      <strong>CYBER CHAT RILL — Cyberpunk Edition</strong><br>
+      Dibuat dengan 💙 oleh <strong>Fahril Moonstar</strong><br>
+      <small style="opacity:0.7">© 2026 All Rights Reserved</small>
+    </div>
+  </main>
+</section>
+
+<!-- TERMS -->
+<section class="page" id="page-terms">
+  <main class="doc">
+    <a href="#/" class="back">← Kembali</a>
+    <h1>Syarat Penggunaan</h1>
+    <h2>Ketentuan Umum</h2>
+    <ul>
+      <li>Layanan ini disediakan untuk keperluan komunikasi yang sah</li>
+      <li>Dilarang menggunakan untuk aktivitas ilegal atau yang melanggar hukum</li>
+      <li>Pengguna bertanggung jawab menjaga kerahasiaan akun masing-masing</li>
+      <li>Fahril Moonstar tidak bertanggung jawab atas penyalahgunaan layanan</li>
+    </ul>
+    <div class="dev-credit" style="margin-top:32px;text-align:center">Developed by <strong>Fahril Moonstar</strong></div>
+  </main>
+</section>
+
+<!-- PRIVACY -->
+<section class="page" id="page-privacy">
+  <main class="doc">
+    <a href="#/" class="back">← Kembali</a>
+    <h1>Kebijakan Privasi</h1>
+    <h2>Penyimpanan Data</h2>
+    <p>Username, password (terenkripsi bcrypt), ID unik, dan daftar kontak disimpan di server. Pesan chat diteruskan realtime ke penerima dan <strong>tidak disimpan permanen</strong> di server.</p>
+    <h2>Keamanan</h2>
+    <p>Password di-hash dengan bcrypt. Autentikasi menggunakan JWT (7 hari). Gunakan password kuat dan jangan bagikan akunmu.</p>
+    <div class="dev-credit" style="margin-top:32px;text-align:center">Developed by <strong>Fahril Moonstar</strong></div>
+  </main>
+</section>
+
+<script>
+/* ============================================================
+   CYBER CHAT RILL — Frontend (backend-connected)
+   Developed by: Fahril Moonstar
+============================================================ */
+
+const $ = s => document.querySelector(s);
+const API = '/api';
+
+/* ---------- Session ---------- */
+function setSession(user, token) {
+  localStorage.setItem('nova_session', JSON.stringify(user));
+  localStorage.setItem('nova_token', token);
+}
+function getSession() { try { return JSON.parse(localStorage.getItem('nova_session') || 'null'); } catch { return null; } }
+function getToken() { return localStorage.getItem('nova_token'); }
+function clearSession() { localStorage.removeItem('nova_session'); localStorage.removeItem('nova_token'); }
+
+/* ---------- API helper ---------- */
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const r = await fetch(API + path, { ...opts, headers });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
+/* ---------- Router ---------- */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + name) || document.getElementById('page-landing');
+  el.classList.add('active');
+}
+
+function router() {
+  const hash = location.hash.replace(/^#\/?/, '') || 'landing';
+  const [route, qs] = hash.split('?');
+  const params = new URLSearchParams(qs || '');
+  const session = getSession();
+
+  if ((route === 'dashboard' || route === 'chat') && !session) { location.hash = '#/login'; return; }
+  if ((route === 'login' || route === 'register') && session) { location.hash = '#/dashboard'; return; }
+
+  showPage(route);
+  if (route === 'landing') startTyping();
+  if (route === 'dashboard') loadDashboard();
+  if (route === 'chat') initChat(params.get('to'));
+}
+
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', () => { drawGrid(); router(); });
+
+/* ---------- Grid background ---------- */
+function drawGrid() {
+  const canvas = $('#grid-bg'); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let w, h, offset = 0;
+  const resize = () => { w = canvas.width = innerWidth; h = canvas.height = innerHeight; };
+  resize(); addEventListener('resize', resize);
+
+  const dots = [];
+  for (let i = 0; i < 30; i++) {
+    dots.push({
+      x: Math.random(), y: Math.random(), size: 1 + Math.random() * 2,
+      speedX: (Math.random() - 0.5) * 0.0003,
+      speedY: (Math.random() - 0.5) * 0.0003
+    });
+  }
+
+  (function frame() {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(0,240,255,0.06)'; ctx.lineWidth = 1;
+    const gap = 45; offset = (offset + 0.25) % gap;
+    for (let x = -gap + offset; x < w; x += gap) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = -gap + offset; y < h; y += gap) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(123,47,253,0.03)';
+    for (let d = -w; d < w + h; d += gap * 2) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + h, h); ctx.stroke(); }
+    dots.forEach(dot => {
+      dot.x += dot.speedX; dot.y += dot.speedY;
+      if (dot.x < 0) dot.x = 1; if (dot.x > 1) dot.x = 0;
+      if (dot.y < 0) dot.y = 1; if (dot.y > 1) dot.y = 0;
+      const px = dot.x * w, py = dot.y * h;
+      ctx.beginPath(); ctx.arc(px, py, dot.size, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,240,255,0.25)'; ctx.fill();
+      dots.forEach(other => {
+        const ox = other.x * w, oy = other.y * h;
+        const dist = Math.hypot(px - ox, py - oy);
+        if (dist < 120) {
+          ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(ox, oy);
+          ctx.strokeStyle = `rgba(0,240,255,${0.08 * (1 - dist / 120)})`;
+          ctx.stroke();
+        }
+      });
+    });
+    requestAnimationFrame(frame);
+  })();
+}
+
+/* ---------- Typing ---------- */
+let typingStarted = false;
+function startTyping() {
+  if (typingStarted) return; typingStarted = true;
+  const el = $('#typing-title'); if (!el) return;
+  const text = 'Selamat Datang di CYBER CHAT RILL';
+  let i = 0;
+  const t = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(t); }, 55);
+}
+
+/* ---------- Auth ---------- */
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('#loginMsg');
+  msg.textContent = 'Menghubungkan...'; msg.className = 'msg';
+  try {
+    const d = await api('/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: $('#loginUser').value.trim(),
+        password: $('#loginPass').value
+      })
+    });
+    setSession(d.user, d.token);
+    location.hash = '#/dashboard';
+  } catch (err) { msg.className = 'msg err'; msg.textContent = '❌ ' + err.message; }
+});
+
+$('#regForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('#regMsg');
+  msg.textContent = 'Memproses...'; msg.className = 'msg';
+  try {
+    const d = await api('/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: $('#regUser').value.trim(),
+        password: $('#regPass').value
+      })
+    });
+    setSession(d.user, d.token);
+    msg.className = 'msg ok'; msg.textContent = `✅ Berhasil! ID: ${d.user.id}`;
+    setTimeout(() => location.hash = '#/dashboard', 1200);
+  } catch (err) { msg.className = 'msg err'; msg.textContent = '❌ ' + err.message; }
+});
+
+/* ---------- Dashboard ---------- */
+async function loadDashboard() {
+  const me = getSession(); if (!me) return;
+  try {
+    const data = await api('/me');
+    $('#uname').textContent = data.username;
+    $('#uid').textContent = data.id;
+    renderContacts(data.contacts);
+  } catch { clearSession(); location.hash = '#/login'; }
+}
+
+async function renderContacts(ids) {
+  const box = $('#contacts');
+  if (!ids || !ids.length) { box.innerHTML = '<p style="color:#6B72A0">Belum ada kontak yang terhubung.</p>'; return; }
+  // Ambil username via pencarian (ID unik tidak langsung ke username, kita bisa tambahkan endpoint kalau perlu)
+  box.innerHTML = ids.map(id => `
+    <div class="contact-item">
+      <div><span class="cid">${id}</span></div>
+      <button onclick="location.hash='#/chat?to=${id}'">CHAT</button>
+    </div>`).join('');
+}
+
+$('#searchForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = $('#searchQ').value.trim();
+  const msg = $('#searchMsg');
+  if (!q) return;
+  try {
+    const list = await api('/users?q=' + encodeURIComponent(q));
+    if (!list.length) { msg.className = 'msg err'; msg.textContent = '❌ Pengguna tidak ditemukan'; return; }
+    const u = list[0];
+    await api('/contacts', { method: 'POST', body: JSON.stringify({ contactId: u.id }) });
+    msg.className = 'msg ok'; msg.textContent = `✅ Terhubung dengan: ${u.username}`;
+    loadDashboard();
+  } catch (err) { msg.className = 'msg err'; msg.textContent = err.message; }
+});
+
+$('#logoutBtn').addEventListener('click', () => {
+  clearSession();
+  if (window._socket) window._socket.disconnect();
+  location.hash = '#/';
+});
+
+/* ---------- Chat ---------- */
+let chatSocket = null;
+let currentTo = null;
+
+function initChat(to) {
+  const me = getSession(); if (!me) return;
+  if (!to) { location.hash = '#/dashboard'; return; }
+  currentTo = to;
+  $('#chatWho').textContent = to;
+  $('#chatBody').innerHTML = '';
+
+  if (chatSocket) chatSocket.disconnect();
+  chatSocket = io({ auth: { token: getToken() } });
+  window._socket = chatSocket;
+
+  chatSocket.on('connect_error', (e) => {
+    $('#chatBody').innerHTML = `<p style="color:#FF4D6F">Koneksi gagal: ${e.message}</p>`;
+  });
+
+  chatSocket.on('message:new', (m) => {
+    if (m.from === me.id) return; // hindari double
+    renderBubble(m, me.id);
+  });
+  chatSocket.on('message:sent', (m) => {
+    // echo dari server setelah kita kirim → sudah kita render lokal, skip
+  });
+}
+
+function renderBubble(m, myId) {
+  const isMe = m.from === myId;
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (isMe ? 'me' : 'them');
+  div.innerHTML = `${escapeHtml(m.text)}<span class="meta">${new Date(m.at).toLocaleTimeString()}</span>`;
+  $('#chatBody').appendChild(div);
+  $('#chatBody').scrollTop = $('#chatBody').scrollHeight;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+$('#chatForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const me = getSession(); if (!me || !currentTo || !chatSocket) return;
+  const input = $('#chatInput');
+  const text = input.value.trim(); if (!text) return;
+
+  const msg = {
+    from: me.id, fromName: me.username, to: currentTo, text, at: Date.now()
+  };
+  chatSocket.emit('message:send', { to: currentTo, text });
+  renderBubble(msg, me.id); // render lokal instan
+  input.value = '';
+});
+</script>
+</body>
+</html>
