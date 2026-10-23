@@ -432,18 +432,38 @@ function escapeHtml(s) {
 
 $('#chatForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const me = getSession(); if (!me || !currentTo) return;
-  const input = $('#chatInput');
-  const text = input.value.trim(); if (!text) return;
+  e.stopPropagation(); // Biar browser gak nge-refresh halaman
   
+  const me = getSession(); 
+  if (!me || !currentTo) return;
+  
+  const input = $('#chatInput');
+  const text = input.value.trim(); 
+  if (!text) return;
+  
+  // Kunci unik percakapan
   const key = 'ccr_msgs_' + [me.id, currentTo].sort().join('_');
-  const msg = { key, from: me.id, fromName: me.username, to: currentTo, text, at: Date.now() };
+  const msg = { 
+    key: key, 
+    from: me.id, 
+    fromName: me.username, 
+    to: currentTo, 
+    text: text, 
+    at: Date.now() 
+  };
 
+  // 1. Simpan ke memori browser
   saveMsg(key, msg);
+  
+  // 2. Tampilkan gelembung pesan di layar
   renderBubble(msg, me.id);
+  
+  // 3. Kirim sinyal ke tab lain (kalau ada)
   if (bc) bc.postMessage(msg);
 
+  // 4. Kosongkan kolom ketik
   input.value = '';
+  input.focus();
 });
 </script>
 </body>
